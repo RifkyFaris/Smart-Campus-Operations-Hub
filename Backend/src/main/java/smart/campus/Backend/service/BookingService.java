@@ -2,6 +2,7 @@ package smart.campus.Backend.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import smart.campus.Backend.dto.BookingDto;
 import smart.campus.Backend.entity.Booking;
 import smart.campus.Backend.entity.Resource;
@@ -18,6 +19,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BookingService {
 
     private final BookingRepository bookingRepository;
@@ -25,7 +27,7 @@ public class BookingService {
     private final UserRepository userRepository;
 
     public List<Booking> getAllBookings() {
-        return bookingRepository.findAll();
+        return bookingRepository.findAllWithRelations();
     }
 
     public List<Booking> getUserBookings(Long userId) {
@@ -33,14 +35,15 @@ public class BookingService {
     }
 
     public Booking getBookingById(Long id) {
-        return bookingRepository.findById(id)
+        return bookingRepository.findByIdWithRelations(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + id));
     }
 
+    @Transactional
     public Booking createBooking(Long userId, BookingDto dto) {
         Resource resource = resourceRepository.findById(dto.getResourceId())
                 .orElseThrow(() -> new ResourceNotFoundException("Resource not found with id: " + dto.getResourceId()));
-        
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
@@ -52,7 +55,7 @@ public class BookingService {
         List<BookingStatus> activeStatuses = Arrays.asList(BookingStatus.PENDING, BookingStatus.APPROVED);
         List<Booking> conflicts = bookingRepository.findConflictingBookings(
                 resource.getId(), dto.getStartTime(), dto.getEndTime(), activeStatuses);
-        
+
         if (!conflicts.isEmpty()) {
             throw new ConflictException("Resource is already booked during this time period.");
         }
@@ -65,13 +68,23 @@ public class BookingService {
                 .status(BookingStatus.PENDING) // Default status according to rubrics
                 .purpose(dto.getPurpose())
                 .build();
-        
+
         return bookingRepository.save(booking);
     }
 
+    @Transactional
     public Booking updateBookingStatus(Long bookingId, BookingStatus newStatus) {
         Booking booking = getBookingById(bookingId);
         booking.setStatus(newStatus);
         return bookingRepository.save(booking);
+    }
+
+    @Transactional
+    public void deleteBooking(Long bookingId) {
+        Booking booking = getBookingById(bookingId);
+        if (booking.getStatus() == BookingStatus.APPROVED) {
+            throw new IllegalStateException("Cannot delete an approved booking. Cancel it first.");
+        }
+        bookingRepository.deleteById(bookingId);
     }
 }

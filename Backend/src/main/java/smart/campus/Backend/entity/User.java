@@ -3,6 +3,7 @@ package smart.campus.Backend.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import smart.campus.Backend.converter.RoleConverter;
 import smart.campus.Backend.entity.enums.Role;
 
 import java.time.LocalDateTime;
@@ -26,7 +27,7 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = RoleConverter.class)
     @Column(nullable = false)
     private Role role;
 

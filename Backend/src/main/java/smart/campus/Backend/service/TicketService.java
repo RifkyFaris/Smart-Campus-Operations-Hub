@@ -2,6 +2,7 @@ package smart.campus.Backend.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import smart.campus.Backend.dto.TicketDto;
 import smart.campus.Backend.entity.Resource;
 import smart.campus.Backend.entity.Ticket;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class TicketService {
 
     private final TicketRepository ticketRepository;
@@ -23,7 +25,7 @@ public class TicketService {
     private final UserRepository userRepository;
 
     public List<Ticket> getAllTickets() {
-        return ticketRepository.findAll();
+        return ticketRepository.findAllWithRelations();
     }
 
     public List<Ticket> getTicketsByReporter(Long reporterId) {
@@ -31,10 +33,11 @@ public class TicketService {
     }
 
     public Ticket getTicketById(Long id) {
-        return ticketRepository.findById(id)
+        return ticketRepository.findByIdWithRelations(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket not found with id: " + id));
     }
 
+    @Transactional
     public Ticket createTicket(Long reporterId, TicketDto dto) {
         Resource resource = resourceRepository.findById(dto.getResourceId())
                 .orElseThrow(() -> new ResourceNotFoundException("Resource not found with id: " + dto.getResourceId()));
@@ -53,12 +56,14 @@ public class TicketService {
         return ticketRepository.save(ticket);
     }
 
+    @Transactional
     public Ticket updateTicketStatus(Long ticketId, TicketStatus newStatus) {
         Ticket ticket = getTicketById(ticketId);
         ticket.setStatus(newStatus);
         return ticketRepository.save(ticket);
     }
 
+    @Transactional
     public Ticket assignTicket(Long ticketId, Long assigneeId) {
         Ticket ticket = getTicketById(ticketId);
         User assignee = userRepository.findById(assigneeId)

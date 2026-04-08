@@ -1,9 +1,13 @@
 package smart.campus.Backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import smart.campus.Backend.converter.TicketCategoryConverter;
+import smart.campus.Backend.converter.TicketPriorityConverter;
+import smart.campus.Backend.converter.TicketStatusConverter;
 import smart.campus.Backend.entity.enums.TicketCategory;
 import smart.campus.Backend.entity.enums.TicketPriority;
 import smart.campus.Backend.entity.enums.TicketStatus;
@@ -17,6 +21,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Ticket {
 
     @Id
@@ -25,25 +30,28 @@ public class Ticket {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resource_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Resource resource;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "reporter_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private User reporter;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assignee_id")
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private User assignee;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = TicketCategoryConverter.class)
     @Column(nullable = false)
     private TicketCategory category;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = TicketPriorityConverter.class)
     @Column(nullable = false)
     private TicketPriority priority;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = TicketStatusConverter.class)
     @Column(nullable = false)
     private TicketStatus status;
 

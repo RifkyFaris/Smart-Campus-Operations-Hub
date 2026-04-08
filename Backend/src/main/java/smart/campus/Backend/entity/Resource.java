@@ -1,8 +1,11 @@
 package smart.campus.Backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import smart.campus.Backend.converter.ResourceStatusConverter;
+import smart.campus.Backend.converter.ResourceTypeConverter;
 import smart.campus.Backend.entity.enums.ResourceStatus;
 import smart.campus.Backend.entity.enums.ResourceType;
 
@@ -15,6 +18,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Resource {
 
     @Id
@@ -24,7 +28,7 @@ public class Resource {
     @Column(nullable = false)
     private String name;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = ResourceTypeConverter.class)
     @Column(nullable = false)
     private ResourceType type;
 
@@ -32,7 +36,7 @@ public class Resource {
 
     private String location;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = ResourceStatusConverter.class)
     @Column(nullable = false)
     private ResourceStatus status;
 
