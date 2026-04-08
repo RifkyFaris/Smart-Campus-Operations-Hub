@@ -69,17 +69,8 @@ const Tickets = () => {
       setResources(rRes.data);
       setError(null);
     } catch (err) {
-      console.error(err);
-      setError('Could not reach backend. Showing sample data.');
-      setResources([
-        { id: 1, name: 'Main Auditorium' },
-        { id: 2, name: 'Computer Lab B' },
-      ]);
-      setTickets([
-        { id: 1, description: 'Projector in Room 101 is not displaying correctly. The image is flickering and has distorted colors.', category: 'HARDWARE', priority: 'HIGH', status: 'OPEN', createdAt: '2026-04-05T10:00:00' },
-        { id: 2, description: 'Wi-Fi connectivity drops intermittently in Building C, 3rd floor.', category: 'NETWORK', priority: 'MEDIUM', status: 'IN_PROGRESS', createdAt: '2026-04-04T14:30:00' },
-        { id: 3, description: 'Air conditioning unit in Lab B is making unusual noise.', category: 'FACILITIES', priority: 'LOW', status: 'RESOLVED', createdAt: '2026-04-03T09:00:00' },
-      ]);
+      console.error('Failed to fetch tickets', err);
+      setError('Could not reach backend.');
     } finally {
       setLoading(false);
     }

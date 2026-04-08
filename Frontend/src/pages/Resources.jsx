@@ -15,14 +15,7 @@ const Resources = () => {
         setResources(response.data);
       } catch (err) {
         console.error('Failed to fetch resources', err);
-        setError('Failed to connect to the backend API. Showing dummy data for design validation.');
-        // Setting some dummy data for design validation in case backend is off
-        setResources([
-          { id: 1, name: 'Main Auditorium', type: 'ROOM', capacity: 300, location: 'Building A, 1st Floor', status: 'ACTIVE' },
-          { id: 2, name: 'Computer Lab B', type: 'LAB', capacity: 45, location: 'Building B, 2nd Floor', status: 'OUT_OF_SERVICE' },
-          { id: 3, name: 'Projector 4K', type: 'EQUIPMENT', capacity: 1, location: 'IT Desk', status: 'ACTIVE' },
-          { id: 4, name: 'Conference Room 101', type: 'ROOM', capacity: 15, location: 'Building A, 1st Floor', status: 'ACTIVE' },
-        ]);
+        setError('Failed to connect to the backend API.');
       } finally {
         setLoading(false);
       }

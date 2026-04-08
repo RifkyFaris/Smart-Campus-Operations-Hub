@@ -50,18 +50,8 @@ const Bookings = () => {
       setResources(rRes.data);
       setError(null);
     } catch (err) {
-      console.error(err);
-      setError('Could not reach backend. Showing sample data.');
-      setResources([
-        { id: 1, name: 'Main Auditorium' },
-        { id: 2, name: 'Computer Lab B' },
-        { id: 3, name: 'Conference Room 101' },
-      ]);
-      setBookings([
-        { id: 1, resource: { name: 'Main Auditorium' }, purpose: 'Guest Lecture', startTime: '2026-04-10T09:00:00', endTime: '2026-04-10T11:00:00', status: 'APPROVED' },
-        { id: 2, resource: { name: 'Computer Lab B' }, purpose: 'Lab Session', startTime: '2026-04-11T14:00:00', endTime: '2026-04-11T16:00:00', status: 'PENDING' },
-        { id: 3, resource: { name: 'Conference Room 101' }, purpose: 'Board Meeting', startTime: '2026-04-12T10:00:00', endTime: '2026-04-12T12:00:00', status: 'REJECTED' },
-      ]);
+      console.error('Failed to fetch bookings', err);
+      setError('Could not reach backend.');
     } finally {
       setLoading(false);
     }
