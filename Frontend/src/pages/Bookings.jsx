@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
-import { CalendarDays, Clock, CheckCircle2, XCircle, Hourglass, Ban, Plus, X } from 'lucide-react';
+import { CalendarDays, Clock, CheckCircle2, XCircle, Hourglass, Ban, Plus, X, Trash2 } from 'lucide-react';
 
 const STATUS_STYLES = {
   PENDING:   { color: '#f59e0b', icon: <Hourglass size={14} /> },
@@ -9,12 +9,13 @@ const STATUS_STYLES = {
   CANCELLED: { color: '#64748b', icon: <Ban size={14} /> },
 };
 
-const BookingRow = ({ booking }) => {
+const BookingRow = ({ booking, onDelete, deleting }) => {
   const st = STATUS_STYLES[booking.status] || STATUS_STYLES.PENDING;
   const fmt = (dt) => dt ? new Date(dt).toLocaleString() : '—';
+  const canDelete = booking.status !== 'APPROVED';
 
   return (
-    <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
+    <tr style={{ borderBottom: '1px solid var(--glass-border)', opacity: deleting ? 0.5 : 1, transition: 'opacity 0.2s' }}>
       <td style={{ padding: '14px 16px' }}>{booking.id}</td>
       <td style={{ padding: '14px 16px' }}>{booking.resource?.name ?? `Resource #${booking.resourceId ?? '?'}`}</td>
       <td style={{ padding: '14px 16px' }}>{booking.purpose || '—'}</td>
@@ -29,6 +30,35 @@ const BookingRow = ({ booking }) => {
           {st.icon}{booking.status}
         </span>
       </td>
+      <td style={{ padding: '14px 16px' }}>
+        {canDelete ? (
+          <button
+            onClick={() => onDelete(booking.id)}
+            disabled={deleting}
+            title="Delete booking"
+            style={{
+              background: 'rgba(239,68,68,0.12)',
+              border: '1px solid rgba(239,68,68,0.3)',
+              color: '#ef4444',
+              borderRadius: 8,
+              padding: '6px 10px',
+              cursor: deleting ? 'not-allowed' : 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 5,
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              transition: 'background 0.2s',
+            }}
+            onMouseEnter={e => { if (!deleting) e.currentTarget.style.background = 'rgba(239,68,68,0.25)'; }}
+            onMouseLeave={e => e.currentTarget.style.background = 'rgba(239,68,68,0.12)'}
+          >
+            <Trash2 size={14} /> {deleting ? 'Deleting…' : 'Delete'}
+          </button>
+        ) : (
+          <span style={{ color: 'var(--text-secondary)', fontSize: '0.8rem' }}>—</span>
+        )}
+      </td>
     </tr>
   );
 };
@@ -41,6 +71,7 @@ const Bookings = () => {
   const [form, setForm] = useState({ resourceId: '', startTime: '', endTime: '', purpose: '' });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   const fetchAll = async () => {
     setLoading(true);
@@ -51,13 +82,32 @@ const Bookings = () => {
       setError(null);
     } catch (err) {
       console.error('Failed to fetch bookings', err);
-      setError('Could not reach backend.');
+      if (err.response) {
+        setError(`Backend error ${err.response.status}: ${err.response.data?.message || err.response.statusText}`);
+      } else if (err.request) {
+        setError('Could not reach backend — is the server running on port 8080?');
+      } else {
+        setError('Unexpected error: ' + err.message);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => { fetchAll(); }, []);
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this booking? This cannot be undone.')) return;
+    setDeletingId(id);
+    try {
+      await api.delete(`/bookings/${id}`);
+      setBookings(prev => prev.filter(b => b.id !== id));
+    } catch (err) {
+      alert('Delete failed: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -146,15 +196,16 @@ const Bookings = () => {
                 <th style={{ padding: '14px 16px', fontWeight: 600, color: 'var(--text-secondary)' }}>Start</th>
                 <th style={{ padding: '14px 16px', fontWeight: 600, color: 'var(--text-secondary)' }}>End</th>
                 <th style={{ padding: '14px 16px', fontWeight: 600, color: 'var(--text-secondary)' }}>Status</th>
+                <th style={{ padding: '14px 16px', fontWeight: 600, color: 'var(--text-secondary)' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} style={{ padding: 40, textAlign: 'center', color: 'var(--text-secondary)' }}>Loading bookings…</td></tr>
+                <tr><td colSpan={7} style={{ padding: 40, textAlign: 'center', color: 'var(--text-secondary)' }}>Loading bookings…</td></tr>
               ) : bookings.length === 0 ? (
-                <tr><td colSpan={6} style={{ padding: 40, textAlign: 'center', color: 'var(--text-secondary)' }}>No bookings found. Create one!</td></tr>
+                <tr><td colSpan={7} style={{ padding: 40, textAlign: 'center', color: 'var(--text-secondary)' }}>No bookings found. Create one!</td></tr>
               ) : (
-                bookings.map(b => <BookingRow key={b.id} booking={b} />)
+                bookings.map(b => <BookingRow key={b.id} booking={b} onDelete={handleDelete} deleting={deletingId === b.id} />)
               )}
             </tbody>
           </table>

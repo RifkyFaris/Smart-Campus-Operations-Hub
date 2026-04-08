@@ -70,7 +70,13 @@ const Tickets = () => {
       setError(null);
     } catch (err) {
       console.error('Failed to fetch tickets', err);
-      setError('Could not reach backend.');
+      if (err.response) {
+        setError(`Backend error ${err.response.status}: ${err.response.data?.message || err.response.statusText}`);
+      } else if (err.request) {
+        setError('Could not reach backend — is the server running on port 8080?');
+      } else {
+        setError('Unexpected error: ' + err.message);
+      }
     } finally {
       setLoading(false);
     }
