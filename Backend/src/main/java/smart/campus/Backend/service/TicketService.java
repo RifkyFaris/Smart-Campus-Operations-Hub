@@ -72,4 +72,10 @@ public class TicketService {
         ticket.setStatus(TicketStatus.IN_PROGRESS);
         return ticketRepository.save(ticket);
     }
+
+    @Transactional
+    public void deleteTicket(Long ticketId) {
+        Ticket ticket = getTicketById(ticketId);
+        ticketRepository.delete(ticket);
+    }
 }

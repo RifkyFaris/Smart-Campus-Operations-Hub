@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import api from '../services/api';
 import {
   User, CalendarDays, AlertTriangle, Bell, Plus, Clock,
-  CheckCircle2, XCircle, Hourglass, ArrowRight, BookOpen
+  CheckCircle2, XCircle, Hourglass, ArrowRight, BookOpen, X
 } from 'lucide-react';
 
 const STATUS_COLORS = {
@@ -45,6 +45,15 @@ const UserDashboard = () => {
     };
     fetchData();
   }, []);
+
+  const handleDeleteTicket = async (id) => {
+    try {
+      await api.delete(`/tickets/${id}`);
+      setTickets(prev => prev.filter(t => t.id !== id));
+    } catch (err) {
+      console.error('Failed to delete ticket', err);
+    }
+  };
 
   const fmt = (dt) => dt ? new Date(dt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—';
   const activeBookings = bookings.filter(b => b.status === 'APPROVED' || b.status === 'PENDING').length;
@@ -157,7 +166,16 @@ const UserDashboard = () => {
                     #{t.id} · {t.category} · {fmt(t.createdAt)}
                   </p>
                 </div>
-                <Badge status={t.status} />
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <Badge status={t.status} />
+                  <button
+                    onClick={() => handleDeleteTicket(t.id)}
+                    style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 0, display: 'flex', marginLeft: '12px' }}
+                    title={t.status === 'RESOLVED' || t.status === 'CLOSED' ? 'Remove' : 'Withdraw'}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
               </div>
             ))
           )}

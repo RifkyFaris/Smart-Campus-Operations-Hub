@@ -1,7 +1,7 @@
 import React from 'react';
-import { MapPin, Users, CheckCircle, AlertOctagon, Box, Monitor, Laptop } from 'lucide-react';
+import { MapPin, Users, CheckCircle, AlertOctagon, Box, Monitor, Laptop, Edit, Trash2 } from 'lucide-react';
 
-const ResourceCard = ({ resource }) => {
+const ResourceCard = ({ resource, isAdmin, onEdit, onDelete }) => {
   const getStatusColor = (status) => {
     return status === 'ACTIVE' ? 'var(--status-success)' : 'var(--status-danger)';
   };
@@ -45,6 +45,17 @@ const ResourceCard = ({ resource }) => {
           <Users size={16} />
           Capacity: {resource.capacity}
         </div>
+        
+        {isAdmin && (
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem' }}>
+            <button onClick={() => onEdit(resource)} style={{ background: 'transparent', border: 'none', color: '#f59e0b', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '4px' }}>
+              <Edit size={16} />
+            </button>
+            <button onClick={() => onDelete(resource.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '4px' }}>
+              <Trash2 size={16} />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

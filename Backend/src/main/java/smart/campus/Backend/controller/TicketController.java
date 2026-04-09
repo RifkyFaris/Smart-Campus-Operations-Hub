@@ -48,4 +48,10 @@ public class TicketController {
     public ResponseEntity<Ticket> assignTicket(@PathVariable Long id, @RequestParam Long assigneeId) {
         return ResponseEntity.ok(ticketService.assignTicket(id, assigneeId));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteTicket(@PathVariable Long id) {
+        ticketService.deleteTicket(id);
+        return ResponseEntity.noContent().build();
+    }
 }

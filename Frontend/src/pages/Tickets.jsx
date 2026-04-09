@@ -25,7 +25,7 @@ const Badge = ({ map, value }) => {
   );
 };
 
-const TicketCard = ({ ticket }) => {
+const TicketCard = ({ ticket, onDelete }) => {
   const pri = PRIORITY_MAP[ticket.priority] || PRIORITY_MAP.LOW;
   return (
     <div className="glass-panel" style={{ position: 'relative', overflow: 'hidden', padding: '1.5rem' }}>
@@ -34,7 +34,16 @@ const TicketCard = ({ ticket }) => {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
         <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>#{ticket.id}</span>
-        <Badge map={STATUS_MAP} value={ticket.status} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Badge map={STATUS_MAP} value={ticket.status} />
+          <button
+             onClick={() => onDelete && onDelete(ticket.id)}
+             style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 0, display: 'flex' }}
+             title={ticket.status === 'RESOLVED' || ticket.status === 'CLOSED' ? 'Remove' : 'Withdraw'}
+          >
+             <X size={16} />
+          </button>
+        </div>
       </div>
 
       <p style={{ margin: '0.5rem 0 1rem', lineHeight: 1.5, color: 'var(--text-primary)' }}>{ticket.description}</p>
@@ -83,6 +92,15 @@ const Tickets = () => {
   };
 
   useEffect(() => { fetchAll(); }, []);
+
+  const handleDeleteTicket = async (id) => {
+    try {
+      await api.delete(`/tickets/${id}`);
+      setTickets(prev => prev.filter(t => t.id !== id));
+    } catch (err) {
+      alert('Failed to delete ticket: ' + (err.response?.data?.message || err.message));
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -181,7 +199,7 @@ const Tickets = () => {
         </div>
       ) : (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.5rem' }}>
-          {tickets.map(t => <TicketCard key={t.id} ticket={t} />)}
+          {tickets.map(t => <TicketCard key={t.id} ticket={t} onDelete={handleDeleteTicket} />)}
         </div>
       )}
     </div>
