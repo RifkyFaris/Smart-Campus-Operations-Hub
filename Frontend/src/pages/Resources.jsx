@@ -78,9 +78,9 @@ const Resources = () => {
           <p style={{ margin: 0, color: 'var(--text-secondary)' }}>View and manage campus physical assets.</p>
         </div>
         {isAdmin && (
-          <button 
-            className="btn btn-primary" 
-            style={{ marginLeft: 'auto' }} 
+          <button
+            className="btn btn-primary"
+            style={{ marginLeft: 'auto' }}
             onClick={() => { setShowForm(!showForm); setEditingId(null); setForm({ name: '', type: 'ROOM', location: '', capacity: 0, status: 'ACTIVE' }); }}
           >
             {showForm ? <><X size={18} /> Cancel</> : <><Plus size={18} /> Add Resource</>}

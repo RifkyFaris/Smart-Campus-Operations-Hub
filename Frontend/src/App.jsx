@@ -1,6 +1,7 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import './App.css'
 import Navbar from './components/Navbar'
+import Footer from './components/Footer'
 import { ProtectedRoute, AdminRoute, UserRoute } from './components/RouteGuards'
 
 // Public pages
@@ -21,10 +22,13 @@ import Tickets from './pages/Tickets'
 import AdminDashboard from './pages/AdminDashboard'
 
 function App() {
+  const location = useLocation();
+  const isHome = location.pathname === '/';
+
   return (
     <div className="app-container">
       <Navbar />
-      <main className="main-content">
+      <main className={isHome ? "home-content" : "main-content"}>
         <Routes>
           {/* ========== PUBLIC ROUTES ========== */}
           <Route path="/" element={<Home />} />
@@ -55,6 +59,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
+      <Footer />
     </div>
   )
 }

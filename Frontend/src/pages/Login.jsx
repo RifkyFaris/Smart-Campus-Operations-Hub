@@ -2,13 +2,12 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '../context/AuthContext';
-import { LogIn, Shield } from 'lucide-react';
+import { Shield } from 'lucide-react';
 
 const Login = () => {
   const { login, isAuthenticated, isAdmin } = useAuth();
   const navigate = useNavigate();
 
-  // If already logged in, redirect to the correct dashboard
   React.useEffect(() => {
     if (isAuthenticated) {
       navigate(isAdmin ? '/admin/dashboard' : '/user/dashboard', { replace: true });
@@ -16,52 +15,81 @@ const Login = () => {
   }, [isAuthenticated, isAdmin, navigate]);
 
   const handleSuccess = async (credentialResponse) => {
-    // credentialResponse.credential is the JWT id_token from Google
     await login(credentialResponse.credential);
-  };
-
-  const handleError = () => {
-    console.error('Google Login Failed');
   };
 
   return (
     <div style={{
-      display: 'flex', justifyContent: 'center', alignItems: 'center',
-      minHeight: 'calc(100vh - 120px)', padding: '2rem',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      minHeight: 'calc(100vh - 120px)',
+      padding: '2rem'
     }}>
       <div className="glass-panel" style={{
-        maxWidth: 420, width: '100%', textAlign: 'center', padding: '3rem 2.5rem',
+        maxWidth: 420,
+        width: '100%',
+        textAlign: 'center',
+        padding: '3rem 2.5rem'
       }}>
+
+        {/* Icon */}
         <div style={{
-          background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', width: 64, height: 64,
-          borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          margin: '0 auto 1.5rem', boxShadow: '0 8px 24px rgba(99,102,241,0.3)',
+          width: 64,
+          height: 64,
+          borderRadius: 16,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          margin: '0 auto 1.5rem',
+          background: 'rgba(46,125,115,0.15)',
+          border: '1px solid rgba(46,125,115,0.3)'
         }}>
-          <Shield size={32} color="#fff" />
+          <Shield size={30} color="var(--accent-gold)" />
         </div>
 
-        <h1 style={{ margin: '0 0 0.5rem', fontSize: '1.75rem' }}>Welcome Back</h1>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem', lineHeight: 1.6 }}>
-          Sign in with your Google account to access the Smart Campus Operations Hub.
+        {/* Title */}
+        <h1 style={{
+          fontSize: '1.9rem',
+          marginBottom: '0.5rem',
+          color: 'var(--accent-gold)'
+        }}>
+          Welcome Back
+        </h1>
+
+        <p style={{
+          color: 'var(--text-secondary)',
+          marginBottom: '2rem',
+          lineHeight: 1.6
+        }}>
+          Access your Smart Campus dashboard securely.
         </p>
 
+        {/* Google Login */}
         <div style={{ display: 'flex', justifyContent: 'center' }}>
           <GoogleLogin
             onSuccess={handleSuccess}
-            onError={handleError}
-            theme="filled_blue"
+            onError={() => console.error('Login Failed')}
+            theme="outline"
             size="large"
-            text="signin_with"
-            shape="rectangular"
           />
         </div>
 
-        <p style={{ marginTop: '1.5rem', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-          Don't have an account?{' '}
-          <a href="/signup" style={{ color: 'var(--brand-primary)', textDecoration: 'none', fontWeight: 500 }}>
-            Sign up here
+        {/* Footer */}
+        <p style={{
+          marginTop: '1.5rem',
+          fontSize: '0.85rem',
+          color: 'var(--text-secondary)'
+        }}>
+          Don’t have an account?{' '}
+          <a href="/signup" style={{
+            color: 'var(--brand-primary)',
+            fontWeight: 500
+          }}>
+            Sign up
           </a>
         </p>
+
       </div>
     </div>
   );

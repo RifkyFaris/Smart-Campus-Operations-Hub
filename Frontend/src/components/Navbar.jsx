@@ -44,7 +44,7 @@ const Navbar = () => {
       boxShadow:       '0 2px 24px rgba(0,0,0,0.4)',
     }}>
       <div style={{
-        maxWidth:       1200,
+        maxWidth:       1600,
         margin:         '0 auto',
         padding:        '0 2rem',
         height:         60,

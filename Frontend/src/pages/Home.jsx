@@ -2,12 +2,15 @@ import { Link } from 'react-router-dom';
 
 const Home = () => {
   return (
-    <div style={{ marginTop: "-2rem", marginInline: "-2rem" }}>
+    <div>
       {/* Top Section - Charcoal Grey */}
       <div style={{ background: "var(--bg-primary)", textAlign: "center", padding: "6rem 2rem 4rem", position: "relative" }}>
-        <h1 style={{ fontSize: "3.5rem", marginBottom: "1rem", color: "var(--accent-gold)" }}>Welcome to Smart Campus Hub</h1>
-        <p style={{ color: "var(--text-secondary)", fontSize: "1.2rem", maxWidth: "700px", margin: "0 auto 2.5rem", lineHeight: "1.6", fontWeight: "300" }}>
-          A premium, full-stack operational dashboard. Manage resources dynamically, book facilities seamlessly, and report incidents elegantly inside one unified platform.
+        <h4 style={{ color: "var(--brand-primary)", textTransform: "uppercase", letterSpacing: "2px", fontSize: "0.9rem", marginBottom: "1rem" }}>
+
+        </h4>
+        <h1 style={{ fontSize: "3.5rem", marginBottom: "1.5rem", color: "var(--accent-gold)" }}>Smart Campus Operations Hub</h1>
+        <p style={{ color: "var(--text-secondary)", fontSize: "1.2rem", maxWidth: "800px", margin: "0 auto 2.5rem", lineHeight: "1.6", fontWeight: "300" }}>
+          Empower your institution with a unified platform to seamlessly manage facility bookings, dynamic asset catalogues, and maintenance incident tracking—designed for clarity, security, and scale.
         </p>
         <div style={{ display: "flex", gap: "1rem", justifyContent: "center" }}>
           <Link to="/bookings">
@@ -28,24 +31,29 @@ const Home = () => {
 
       {/* Bottom Section - Teal Accent */}
       <div style={{ background: "var(--bg-tertiary)", padding: "4rem 2rem 8rem", textAlign: "center" }}>
-        <h2 style={{ fontSize: "2.5rem", color: "var(--text-primary)", marginBottom: "2rem" }}>Discover Premium Facilities</h2>
-        <div style={{ display: "flex", justifyContent: "center", gap: "2rem", flexWrap: "wrap" }}>
-          
-          <div className="glass-panel" style={{ flex: "1 1 300px", maxWidth: "350px", background: "rgba(33, 37, 41, 0.4)", border: "none" }}>
-            <div className="circle-frame" style={{ width: "120px", height: "120px", margin: "0 auto 1.5rem", background: "var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-               <span style={{ color: "var(--accent-gold)", fontSize: "2rem", fontFamily: "var(--font-heading)" }}>01</span>
-            </div>
-            <h3 style={{ color: "var(--accent-gold)" }}>Conference Rooms</h3>
-            <p style={{ color: "var(--text-primary)", fontWeight: "300" }}>State-of-the-art meeting spaces designed for collaboration and focus.</p>
+        <h2 style={{ fontSize: "2.5rem", color: "var(--text-primary)", marginBottom: "3rem" }}>Platform Capabilities</h2>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "2rem", maxWidth: "1600px", margin: "0 auto", textAlign: "left" }}>
+
+          <div className="glass-panel" style={{ background: "rgba(33, 37, 41, 0.4)", border: "none" }}>
+            <div style={{ color: "var(--accent-gold)", fontSize: "1.5rem", fontWeight: "bold", marginBottom: "1rem", fontFamily: "var(--font-heading)" }}>01. Resource Directory</div>
+            <h3 style={{ color: "var(--text-primary)", fontSize: "1.2rem", marginBottom: "0.5rem" }}>Live Catalogue</h3>
+            <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", lineHeight: "1.5" }}>Maintain a dynamic directory of halls, labs, and equipment with real-time availability and technical specifications.</p>
           </div>
 
-          <div className="glass-panel" style={{ flex: "1 1 300px", maxWidth: "350px", background: "rgba(33, 37, 41, 0.4)", border: "none" }}>
-            <div className="box-frame" style={{ width: "120px", height: "120px", margin: "0 auto 1.5rem", background: "var(--bg-primary)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-               <span style={{ color: "var(--accent-gold)", fontSize: "2rem", fontFamily: "var(--font-heading)" }}>02</span>
-            </div>
-            <h3 style={{ color: "var(--accent-gold)" }}>Digital Labs</h3>
-            <p style={{ color: "var(--text-primary)", fontWeight: "300" }}>High-performance workstations equipped with the latest software tooling.</p>
+          <div className="glass-panel" style={{ background: "rgba(33, 37, 41, 0.4)", border: "none" }}>
+            <div style={{ color: "var(--accent-gold)", fontSize: "1.5rem", fontWeight: "bold", marginBottom: "1rem", fontFamily: "var(--font-heading)" }}>02. Smart Scheduling</div>
+            <h3 style={{ color: "var(--text-primary)", fontSize: "1.2rem", marginBottom: "0.5rem" }}>Booking System</h3>
+            <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", lineHeight: "1.5" }}>Reserve facilities confidently with our intelligent conflict prevention engine and streamlined approval workflows.</p>
           </div>
+
+          <div className="glass-panel" style={{ background: "rgba(33, 37, 41, 0.4)", border: "none" }}>
+            <div style={{ color: "var(--accent-gold)", fontSize: "1.5rem", fontWeight: "bold", marginBottom: "1rem", fontFamily: "var(--font-heading)" }}>03. Incident Resolution</div>
+            <h3 style={{ color: "var(--text-primary)", fontSize: "1.2rem", marginBottom: "0.5rem" }}>Maintenance Hub</h3>
+            <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", lineHeight: "1.5" }}>Report faults with photo evidence. Track maintenance progress transparently from assignment to complete resolution.</p>
+          </div>
+
+
 
         </div>
       </div>
