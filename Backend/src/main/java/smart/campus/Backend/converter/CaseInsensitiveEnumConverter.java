@@ -24,7 +24,8 @@ public abstract class CaseInsensitiveEnumConverter<E extends Enum<E>>
     @Override
     @SuppressWarnings("unchecked")
     public E convertToEntityAttribute(String dbData) {
-        if (dbData == null || dbData.trim().isEmpty()) return null;
+        if (dbData == null || dbData.trim().isEmpty())
+            return null;
 
         // Hibernate 7 occasionally passes the already-resolved enum toString()
         // which equals name() for standard enums — handle gracefully either way
@@ -41,10 +42,11 @@ public abstract class CaseInsensitiveEnumConverter<E extends Enum<E>>
             if (ordinal >= 0 && ordinal < constants.length) {
                 return constants[ordinal];
             }
-        } catch (NumberFormatException ignored) { }
+        } catch (NumberFormatException ignored) {
+        }
 
         throw new IllegalArgumentException(
                 "Cannot convert DB value \"" + dbData + "\" to enum " + enumClass.getSimpleName()
-                + ". Valid values: " + java.util.Arrays.toString(enumClass.getEnumConstants()));
+                        + ". Valid values: " + java.util.Arrays.toString(enumClass.getEnumConstants()));
     }
 }
