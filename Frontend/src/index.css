@@ -1,25 +1,25 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap");
 
 :root {
   /* Modern Cafe Luxury Palette */
-  --bg-primary: #212529;      /* Charcoal grey */
-  --bg-secondary: #2a2f34;    /* Slightly lighter charcoal */
-  --bg-tertiary: #2E7D73;     /* Desaturated teal / cyan */
-  
-  --text-primary: #F8F9FA;    /* Cream / off-white */
-  --text-secondary: #adb5bd;  /* Muted cream */
-  
+  --bg-primary: #212529; /* Charcoal grey */
+  --bg-secondary: #2a2f34; /* Slightly lighter charcoal */
+  --bg-tertiary: #2e7d73; /* Desaturated teal / cyan */
+
+  --text-primary: #f8f9fa; /* Cream / off-white */
+  --text-secondary: #adb5bd; /* Muted cream */
+
   /* Primary Brand Color: Desaturated Teal */
-  --brand-primary: #2E7D73;
+  --brand-primary: #2e7d73;
   --brand-hover: #1e564f;
   --brand-light: rgba(46, 125, 115, 0.2);
-  
+
   /* Accent Color: Soft Matte Gold */
-  --accent-gold: #C5A059;
+  --accent-gold: #c5a059;
 
   /* Status Colors (muted for aesthetic) */
   --status-success: #38b000;
-  --status-warning: #C5A059;
+  --status-warning: #c5a059;
   --status-danger: #d90429;
 
   /* Glassmorphism Variables */
@@ -27,8 +27,8 @@
   --glass-border: rgba(248, 249, 250, 0.08);
   --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
 
-  --font-family: 'Inter', -apple-system, sans-serif;
-  --font-heading: 'Playfair Display', serif;
+  --font-family: "Inter", -apple-system, sans-serif;
+  --font-heading: "Playfair Display", serif;
 }
 
 * {
@@ -40,7 +40,7 @@
 body {
   background-color: var(--bg-primary);
   /* Organic soft radial gradients for ambient lighting */
-  background-image: 
+  background-image:
     radial-gradient(at 0% 0%, rgba(46, 125, 115, 0.15) 0px, transparent 50%),
     radial-gradient(at 100% 100%, rgba(197, 160, 89, 0.05) 0px, transparent 50%);
   background-attachment: fixed;
@@ -60,7 +60,9 @@ body {
   box-shadow: var(--glass-shadow);
   border-radius: 16px;
   padding: 24px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .glass-panel:hover {
@@ -69,7 +71,8 @@ body {
 }
 
 /* Base button styles */
-button, .btn {
+button,
+.btn {
   font-family: var(--font-family);
   font-weight: 500;
   border: none;
@@ -113,7 +116,9 @@ button, .btn {
 }
 
 /* Input styles */
-input, select, textarea {
+input,
+select,
+textarea {
   width: 100%;
   background: rgba(15, 23, 42, 0.5);
   border: 1px solid var(--glass-border);
@@ -122,16 +127,25 @@ input, select, textarea {
   color: var(--text-primary);
   font-family: var(--font-family);
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
-input:focus, select:focus, textarea:focus {
+input:focus,
+select:focus,
+textarea:focus {
   border-color: var(--brand-primary);
   box-shadow: 0 0 0 3px var(--brand-light);
 }
 
 /* Text helpers */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   color: var(--text-primary);
   font-weight: 500;
   margin-bottom: 1rem;
@@ -183,9 +197,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Navbar link hover — applied globally so JSX doesn't need onMouseEnter */
-a { text-decoration: none; }
+a {
+  text-decoration: none;
+}
 
 .nav-link:hover {
-  background: rgba(255,255,255,0.06) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
   color: var(--text-primary) !important;
 }

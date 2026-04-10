@@ -1,19 +1,19 @@
-import axios from 'axios';
+import axios from "axios";
 
 const api = axios.create({
-  baseURL: 'http://localhost:9090/api', // Spring Boot default port
+  baseURL: "http://localhost:9090/api", // Spring Boot default port
 });
 
 // Add a request interceptor to attach JWT if we have it
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
 
 export default api;

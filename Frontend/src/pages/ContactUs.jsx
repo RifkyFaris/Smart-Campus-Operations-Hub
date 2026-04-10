@@ -1,11 +1,10 @@
-import React, { useState } from 'react'
-
+import React, { useState } from "react";
 
 const ContactUs = () => {
   const [form, setForm] = useState({
     name: "",
     email: "",
-    message: ""
+    message: "",
   });
 
   const handleChange = (e) => {
@@ -19,7 +18,6 @@ const ContactUs = () => {
 
   return (
     <div style={{ padding: "4rem 2rem", maxWidth: "800px", margin: "0 auto" }}>
-      
       {/* Header */}
       <div style={{ textAlign: "center", marginBottom: "3rem" }}>
         <h1 style={{ fontSize: "3rem", color: "var(--accent-gold)" }}>
@@ -32,7 +30,6 @@ const ContactUs = () => {
 
       {/* Form */}
       <form className="glass-panel" onSubmit={handleSubmit}>
-        
         <div style={{ marginBottom: "1.5rem" }}>
           <label>Name</label>
           <input
@@ -66,13 +63,16 @@ const ContactUs = () => {
           />
         </div>
 
-        <button className="btn btn-primary" type="submit" style={{ width: "100%" }}>
+        <button
+          className="btn btn-primary"
+          type="submit"
+          style={{ width: "100%" }}
+        >
           Send Message
         </button>
       </form>
-
     </div>
   );
-}
+};
 
-export default ContactUs
+export default ContactUs;

@@ -48,7 +48,6 @@ const STATUS_COLOR = {
   CLOSED: "#64748b",
 };
 
-
 const StatusBadge = ({ status }) => (
   <span
     style={{
@@ -422,18 +421,20 @@ const TicketModal = ({ ticket, onClose, onStatusChange }) => {
 /* ─── Admin Dashboard ─────────────────────────────────────────── */
 const AdminDashboard = () => {
   const handleDeleteBooking = async (id) => {
-  const confirmDelete = window.confirm("Are you sure you want to delete this booking?");
-  if (!confirmDelete) return;
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this booking?",
+    );
+    if (!confirmDelete) return;
 
-  try {
-    await api.delete(`/bookings/${id}`);
+    try {
+      await api.delete(`/bookings/${id}`);
 
-    // remove from UI immediately
-    setAllBookings((prev) => prev.filter((b) => b.id !== id));
-  } catch (err) {
-    alert("Delete failed: " + (err.response?.data?.message || err.message));
-  }
-};
+      // remove from UI immediately
+      setAllBookings((prev) => prev.filter((b) => b.id !== id));
+    } catch (err) {
+      alert("Delete failed: " + (err.response?.data?.message || err.message));
+    }
+  };
   const [allBookings, setAllBookings] = useState([]);
   const [allTickets, setAllTickets] = useState([]);
   const [loading, setLoading] = useState(true);
