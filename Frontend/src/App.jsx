@@ -10,6 +10,7 @@ import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Unauthorized from './pages/Unauthorized'
 
+
 // Shared pages (require authentication, either role)
 import Resources from './pages/Resources'
 
@@ -20,6 +21,8 @@ import Tickets from './pages/Tickets'
 
 // Admin-only pages
 import AdminDashboard from './pages/AdminDashboard'
+import AboutUs from './pages/AboutUs'
+import ContactUs from './pages/ContactUs'
 
 function App() {
   const location = useLocation();
@@ -32,6 +35,8 @@ function App() {
         <Routes>
           {/* ========== PUBLIC ROUTES ========== */}
           <Route path="/" element={<Home />} />
+          <Route path="/about" element={<AboutUs />} />
+          <Route path="/contact" element={<ContactUs />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
