@@ -3,9 +3,12 @@ package smart.campus.Backend.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import smart.campus.Backend.dto.TicketDto;
+import smart.campus.Backend.entity.Attachment;
 import smart.campus.Backend.entity.Ticket;
 import smart.campus.Backend.entity.enums.TicketStatus;
 import smart.campus.Backend.service.TicketService;
@@ -53,5 +56,17 @@ public class TicketController {
     public ResponseEntity<Void> deleteTicket(@PathVariable Long id) {
         ticketService.deleteTicket(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(value = "/{id}/attachments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<List<Attachment>> uploadAttachments(
+            @PathVariable Long id,
+            @RequestParam("files") List<MultipartFile> files) {
+        return ResponseEntity.ok(ticketService.addAttachments(id, files));
+    }
+
+    @GetMapping("/{id}/attachments")
+    public ResponseEntity<List<Attachment>> getAttachments(@PathVariable Long id) {
+        return ResponseEntity.ok(ticketService.getAttachments(id));
     }
 }

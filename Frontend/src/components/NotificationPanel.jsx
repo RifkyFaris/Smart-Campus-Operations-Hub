@@ -1,125 +1,207 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bell, Check, X } from 'lucide-react';
+import { Bell, Check, CheckCheck, X } from 'lucide-react';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 const NotificationPanel = () => {
-  const [open, setOpen] = useState(false);
+  const { user } = useAuth();
+  const [open, setOpen]                   = useState(false);
   const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const panelRef = useRef(null);
+  const [loading, setLoading]             = useState(false);
+  const panelRef                          = useRef(null);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const fetchNotifications = async () => {
+    if (!user?.id) return;
     setLoading(true);
     try {
-      // userId=1 is a placeholder; in a real app it comes from auth context
-      const res = await api.get('/notifications/user/1');
+      const res = await api.get(`/notifications/user/${user.id}`);
       setNotifications(res.data);
-    } catch {
-      setNotifications([
-        { id: 1, message: 'Your booking for Main Auditorium was approved.', isRead: false, createdAt: '2026-04-07T10:30:00' },
-        { id: 2, message: 'Ticket #3 has been resolved by the maintenance team.', isRead: false, createdAt: '2026-04-06T16:00:00' },
-        { id: 3, message: 'New resource "Seminar Hall C" has been added.', isRead: true, createdAt: '2026-04-05T11:00:00' },
-      ]);
+    } catch (err) {
+      console.error('Failed to fetch notifications', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const markAsRead = async (id) => {
-    try {
-      await api.patch(`/notifications/${id}/read`);
-    } catch { /* ignore if backend is offline */ }
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
-  };
+  // Refresh every 30 s when panel is closed, immediately when opened
+  useEffect(() => {
+    fetchNotifications();
+  }, [user?.id]);
 
   useEffect(() => {
     if (open) fetchNotifications();
   }, [open]);
 
-  // Close panel when clicking outside
   useEffect(() => {
-    const handler = (e) => { if (panelRef.current && !panelRef.current.contains(e.target)) setOpen(false); };
+    const interval = setInterval(() => {
+      if (!open) fetchNotifications();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [open, user?.id]);
+
+  // Close on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (panelRef.current && !panelRef.current.contains(e.target)) setOpen(false);
+    };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  const markAsRead = async (id) => {
+    try {
+      await api.patch(`/notifications/${id}/read`);
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+    } catch (err) {
+      console.error('Failed to mark notification as read', err);
+    }
+  };
+
+  const markAllAsRead = async () => {
+    if (!user?.id || unreadCount === 0) return;
+    try {
+      await api.patch(`/notifications/user/${user.id}/read-all`);
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    } catch (err) {
+      console.error('Failed to mark all as read', err);
+    }
+  };
+
+  const timeAgo = (dateStr) => {
+    if (!dateStr) return '';
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1)  return 'Just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24)  return `${hrs}h ago`;
+    return `${Math.floor(hrs / 24)}d ago`;
+  };
+
   return (
     <div ref={panelRef} style={{ position: 'relative' }}>
+      {/* Bell button */}
       <button
-        onClick={() => setOpen(!open)}
-        style={{
-          background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-primary)',
-          position: 'relative', padding: 8,
-        }}
+        onClick={() => setOpen(v => !v)}
         aria-label="Notifications"
-        id="notification-bell"
+        style={{
+          background: open ? 'rgba(99,102,241,0.15)' : 'transparent',
+          border: '1px solid ' + (open ? 'rgba(99,102,241,0.4)' : 'rgba(255,255,255,0.08)'),
+          borderRadius: 8, cursor: 'pointer',
+          color: open ? '#818cf8' : 'rgba(248,250,252,0.65)',
+          padding: '6px 8px', position: 'relative',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'all 0.15s ease',
+        }}
       >
-        <Bell size={22} />
+        <Bell size={18} />
         {unreadCount > 0 && (
           <span style={{
-            position: 'absolute', top: 2, right: 2, width: 18, height: 18, borderRadius: '50%',
-            background: 'var(--status-danger)', color: '#fff', fontSize: '0.7rem', fontWeight: 700,
+            position: 'absolute', top: -5, right: -5,
+            minWidth: 18, height: 18, borderRadius: 9,
+            background: '#ef4444', color: '#fff',
+            fontSize: '0.68rem', fontWeight: 700,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '0 4px', border: '2px solid #0f172a',
           }}>
-            {unreadCount}
+            {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
       </button>
 
+      {/* Dropdown */}
       {open && (
         <div style={{
-          position: 'absolute', top: 'calc(100% + 12px)', right: 0, width: 380, maxHeight: 440,
-          background: 'rgba(30,41,59,0.95)', backdropFilter: 'blur(16px)',
-          border: '1px solid var(--glass-border)', borderRadius: 16,
-          boxShadow: '0 20px 60px rgba(0,0,0,0.5)', zIndex: 100, overflow: 'hidden',
-          animation: 'slideDown 0.2s ease',
+          position: 'absolute', top: 'calc(100% + 10px)', right: 0,
+          width: 380, maxHeight: 480,
+          background: 'rgba(15,23,42,0.97)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: 14,
+          boxShadow: '0 24px 64px rgba(0,0,0,0.6)',
+          zIndex: 200, overflow: 'hidden',
+          animation: 'ntfSlide 0.18s ease',
         }}>
-          <style>{`@keyframes slideDown { from { opacity:0; transform:translateY(-8px) } to { opacity:1; transform:translateY(0) } }`}</style>
-          <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h4 style={{ margin: 0, fontSize: '1rem' }}>Notifications</h4>
-            <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: 4 }}>
-              <X size={18} />
+          <style>{`@keyframes ntfSlide { from { opacity:0; transform:translateY(-6px) } to { opacity:1; transform:translateY(0) } }`}</style>
+
+          {/* Header */}
+          <div style={{
+            padding: '14px 18px',
+            borderBottom: '1px solid rgba(255,255,255,0.07)',
+            display: 'flex', alignItems: 'center', gap: 10,
+          }}>
+            <span style={{ fontWeight: 700, fontSize: '0.95rem', flex: 1 }}>Notifications</span>
+            {unreadCount > 0 && (
+              <button
+                onClick={markAllAsRead}
+                title="Mark all as read"
+                style={{
+                  background: 'rgba(99,102,241,0.12)', border: 'none',
+                  color: '#818cf8', borderRadius: 6, padding: '4px 10px',
+                  fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: 4,
+                }}
+              >
+                <CheckCheck size={13} /> Mark all read
+              </button>
+            )}
+            <button onClick={() => setOpen(false)} style={{
+              background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)',
+              cursor: 'pointer', padding: 4, display: 'flex',
+            }}>
+              <X size={16} />
             </button>
           </div>
 
-          <div style={{ overflowY: 'auto', maxHeight: 370 }}>
+          {/* List */}
+          <div style={{ overflowY: 'auto', maxHeight: 400 }}>
             {loading ? (
-              <p style={{ padding: 24, textAlign: 'center', color: 'var(--text-secondary)' }}>Loading…</p>
+              <p style={{ padding: 28, textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.88rem' }}>Loading…</p>
             ) : notifications.length === 0 ? (
-              <p style={{ padding: 24, textAlign: 'center', color: 'var(--text-secondary)' }}>No notifications yet.</p>
+              <div style={{ padding: '36px 24px', textAlign: 'center' }}>
+                <Bell size={32} style={{ color: 'rgba(255,255,255,0.15)', marginBottom: 10 }} />
+                <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.88rem' }}>No notifications yet.</p>
+              </div>
             ) : (
               notifications.map(n => (
-                <div
-                  key={n.id}
-                  style={{
-                    padding: '14px 20px', borderBottom: '1px solid var(--glass-border)',
-                    display: 'flex', gap: 12, alignItems: 'flex-start',
-                    background: n.isRead ? 'transparent' : 'rgba(99,102,241,0.06)',
-                    transition: 'background 0.2s',
-                  }}
-                >
+                <div key={n.id} style={{
+                  padding: '13px 18px',
+                  borderBottom: '1px solid rgba(255,255,255,0.05)',
+                  display: 'flex', gap: 12, alignItems: 'flex-start',
+                  background: n.isRead ? 'transparent' : 'rgba(99,102,241,0.07)',
+                  transition: 'background 0.2s',
+                }}>
+                  {/* Unread dot */}
                   <div style={{
-                    width: 8, height: 8, borderRadius: '50%', marginTop: 6, flexShrink: 0,
-                    background: n.isRead ? 'transparent' : 'var(--brand-primary)',
+                    width: 7, height: 7, borderRadius: '50%', marginTop: 7, flexShrink: 0,
+                    background: n.isRead ? 'rgba(255,255,255,0.1)' : '#6366f1',
+                    boxShadow: n.isRead ? 'none' : '0 0 6px rgba(99,102,241,0.7)',
                   }} />
+
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: 0, fontSize: '0.88rem', lineHeight: 1.5, color: 'var(--text-primary)' }}>{n.message}</p>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: 4, display: 'block' }}>
-                      {n.createdAt ? new Date(n.createdAt).toLocaleString() : ''}
+                    <p style={{ margin: 0, fontSize: '0.85rem', lineHeight: 1.55, color: n.isRead ? 'var(--text-secondary)' : 'var(--text-primary)' }}>
+                      {n.message}
+                    </p>
+                    <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.3)', marginTop: 4, display: 'block' }}>
+                      {timeAgo(n.createdAt)}
                     </span>
                   </div>
+
                   {!n.isRead && (
                     <button
                       onClick={() => markAsRead(n.id)}
                       title="Mark as read"
                       style={{
-                        background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)',
-                        padding: 4, flexShrink: 0, transition: 'color 0.2s',
+                        background: 'none', border: 'none', cursor: 'pointer',
+                        color: 'rgba(255,255,255,0.3)', padding: 3, flexShrink: 0,
+                        display: 'flex', transition: 'color 0.15s',
                       }}
+                      onMouseEnter={e => e.currentTarget.style.color = '#818cf8'}
+                      onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}
                     >
-                      <Check size={16} />
+                      <Check size={15} />
                     </button>
                   )}
                 </div>

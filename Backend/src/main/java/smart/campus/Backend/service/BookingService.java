@@ -25,6 +25,7 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final ResourceRepository resourceRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     public List<Booking> getAllBookings() {
         return bookingRepository.findAllWithRelations();
@@ -51,7 +52,6 @@ public class BookingService {
             throw new IllegalArgumentException("Start time must be before end time");
         }
 
-        // Conflict checking: Any PENDING or APPROVED booking overlapping?
         List<BookingStatus> activeStatuses = Arrays.asList(BookingStatus.PENDING, BookingStatus.APPROVED);
         List<Booking> conflicts = bookingRepository.findConflictingBookings(
                 resource.getId(), dto.getStartTime(), dto.getEndTime(), activeStatuses);
@@ -65,18 +65,42 @@ public class BookingService {
                 .user(user)
                 .startTime(dto.getStartTime())
                 .endTime(dto.getEndTime())
-                .status(BookingStatus.PENDING) // Default status according to rubrics
+                .status(BookingStatus.PENDING)
                 .purpose(dto.getPurpose())
                 .build();
 
-        return bookingRepository.save(booking);
+        Booking saved = bookingRepository.save(booking);
+
+        // Notify all admins about the new booking request
+        notificationService.notifyAllAdmins(
+            String.format("📅 New booking request from %s for \"%s\" (Booking #%d). Awaiting approval.",
+                user.getName(), resource.getName(), saved.getId()));
+
+        return saved;
     }
 
     @Transactional
     public Booking updateBookingStatus(Long bookingId, BookingStatus newStatus) {
         Booking booking = getBookingById(bookingId);
+        BookingStatus oldStatus = booking.getStatus();
         booking.setStatus(newStatus);
-        return bookingRepository.save(booking);
+        Booking saved = bookingRepository.save(booking);
+
+        // Notify the booking owner about the status change
+        Long ownerId = saved.getUser().getId();
+        String resourceName = saved.getResource().getName();
+
+        switch (newStatus) {
+            case APPROVED -> notificationService.createNotification(ownerId,
+                String.format("✅ Your booking for \"%s\" (Booking #%d) has been approved!", resourceName, bookingId));
+            case REJECTED -> notificationService.createNotification(ownerId,
+                String.format("❌ Your booking for \"%s\" (Booking #%d) has been rejected.", resourceName, bookingId));
+            case CANCELLED -> notificationService.createNotification(ownerId,
+                String.format("🚫 Your booking for \"%s\" (Booking #%d) has been cancelled.", resourceName, bookingId));
+            default -> {} // No notification for other transitions
+        }
+
+        return saved;
     }
 
     @Transactional

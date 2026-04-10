@@ -3,16 +3,21 @@ package smart.campus.Backend.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import smart.campus.Backend.dto.TicketDto;
+import smart.campus.Backend.entity.Attachment;
 import smart.campus.Backend.entity.Resource;
 import smart.campus.Backend.entity.Ticket;
 import smart.campus.Backend.entity.User;
 import smart.campus.Backend.entity.enums.TicketStatus;
 import smart.campus.Backend.exception.ResourceNotFoundException;
+import smart.campus.Backend.repository.AttachmentRepository;
 import smart.campus.Backend.repository.ResourceRepository;
 import smart.campus.Backend.repository.TicketRepository;
 import smart.campus.Backend.repository.UserRepository;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -23,6 +28,9 @@ public class TicketService {
     private final TicketRepository ticketRepository;
     private final ResourceRepository resourceRepository;
     private final UserRepository userRepository;
+    private final AttachmentRepository attachmentRepository;
+    private final FileStorageService fileStorageService;
+    private final NotificationService notificationService;
 
     public List<Ticket> getAllTickets() {
         return ticketRepository.findAllWithRelations();
@@ -53,14 +61,42 @@ public class TicketService {
                 .description(dto.getDescription())
                 .build();
 
-        return ticketRepository.save(ticket);
+        Ticket saved = ticketRepository.save(ticket);
+
+        // Notify all admins about the new ticket
+        notificationService.notifyAllAdmins(
+            String.format("🎫 New %s-priority ticket #%d reported by %s on \"%s\": %s",
+                dto.getPriority(), saved.getId(), reporter.getName(),
+                resource.getName(),
+                dto.getDescription().length() > 60
+                    ? dto.getDescription().substring(0, 60) + "…"
+                    : dto.getDescription()));
+
+        return saved;
     }
 
     @Transactional
     public Ticket updateTicketStatus(Long ticketId, TicketStatus newStatus) {
         Ticket ticket = getTicketById(ticketId);
         ticket.setStatus(newStatus);
-        return ticketRepository.save(ticket);
+        Ticket saved = ticketRepository.save(ticket);
+
+        Long reporterId = saved.getReporter().getId();
+        String resourceName = saved.getResource().getName();
+
+        switch (newStatus) {
+            case IN_PROGRESS -> notificationService.createNotification(reporterId,
+                String.format("🔧 Your ticket #%d for \"%s\" is now being worked on.", ticketId, resourceName));
+            case RESOLVED -> notificationService.createNotification(reporterId,
+                String.format("✅ Your ticket #%d for \"%s\" has been resolved!", ticketId, resourceName));
+            case CLOSED -> notificationService.createNotification(reporterId,
+                String.format("🔒 Your ticket #%d for \"%s\" has been closed.", ticketId, resourceName));
+            case REJECTED -> notificationService.createNotification(reporterId,
+                String.format("❌ Your ticket #%d for \"%s\" has been rejected.", ticketId, resourceName));
+            default -> {}
+        }
+
+        return saved;
     }
 
     @Transactional
@@ -70,12 +106,40 @@ public class TicketService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + assigneeId));
         ticket.setAssignee(assignee);
         ticket.setStatus(TicketStatus.IN_PROGRESS);
-        return ticketRepository.save(ticket);
+        Ticket saved = ticketRepository.save(ticket);
+
+        // Notify the reporter
+        notificationService.createNotification(saved.getReporter().getId(),
+            String.format("🔧 Your ticket #%d has been assigned to %s and is now in progress.",
+                ticketId, assignee.getName()));
+
+        return saved;
     }
 
     @Transactional
     public void deleteTicket(Long ticketId) {
         Ticket ticket = getTicketById(ticketId);
         ticketRepository.delete(ticket);
+    }
+
+    @Transactional
+    public List<Attachment> addAttachments(Long ticketId, List<MultipartFile> files) {
+        Ticket ticket = getTicketById(ticketId);
+        List<Attachment> saved = new ArrayList<>();
+        for (MultipartFile file : files) {
+            if (file.isEmpty()) continue;
+            try {
+                String url = fileStorageService.store(file);
+                saved.add(attachmentRepository.save(
+                    Attachment.builder().ticket(ticket).fileUrl(url).build()));
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to store file: " + file.getOriginalFilename(), e);
+            }
+        }
+        return saved;
+    }
+
+    public List<Attachment> getAttachments(Long ticketId) {
+        return attachmentRepository.findByTicketId(ticketId);
     }
 }

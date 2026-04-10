@@ -33,6 +33,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/signup").permitAll()       // Public signup
                         .requestMatchers(HttpMethod.GET, "/api/resources/**").permitAll() // View resources publicly
+                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll() // Serve uploaded images
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")     // Admin-only endpoints
                         .anyRequest().authenticated()
                 )

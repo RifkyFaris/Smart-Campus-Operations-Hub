@@ -13,6 +13,8 @@ import smart.campus.Backend.entity.enums.TicketPriority;
 import smart.campus.Backend.entity.enums.TicketStatus;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "tickets")
@@ -57,6 +59,10 @@ public class Ticket {
 
     @Column(columnDefinition = "TEXT", nullable = false)
     private String description;
+
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @Builder.Default
+    private List<Attachment> attachments = new ArrayList<>();
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
