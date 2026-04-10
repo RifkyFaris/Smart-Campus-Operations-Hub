@@ -104,11 +104,17 @@ public class BookingService {
     }
 
     @Transactional
-    public void deleteBooking(Long bookingId) {
-        Booking booking = getBookingById(bookingId);
-        if (booking.getStatus() == BookingStatus.APPROVED) {
-            throw new IllegalStateException("Cannot delete an approved booking. Cancel it first.");
-        }
-        bookingRepository.deleteById(bookingId);
-    }
+public void deleteBooking(Long bookingId) {
+    Booking booking = bookingRepository.findById(bookingId)
+        .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + bookingId));
+
+    bookingRepository.deleteById(bookingId);
+
+    // Optional: notify user
+    notificationService.createNotification(
+        booking.getUser().getId(),
+        String.format("Your booking for \"%s\" (Booking #%d) has been deleted.",
+            booking.getResource().getName(), bookingId)
+    );
+}
 }

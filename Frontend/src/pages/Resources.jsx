@@ -97,7 +97,7 @@ const Resources = () => {
           </div>
           <div>
             <label style={{ display: 'block', marginBottom: 6, color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Type</label>
-            <select required value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.05)', color: 'var(--text-primary)' }}>
+            <select required value={form.type} onChange={e => setForm({ ...form, type: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.05)', color: 'grey' }}>
               {['ROOM', 'LAB', 'EQUIPMENT'].map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>
@@ -111,8 +111,8 @@ const Resources = () => {
           </div>
           <div>
             <label style={{ display: 'block', marginBottom: 6, color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Status</label>
-            <select required value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.05)', color: 'var(--text-primary)' }}>
-              {['ACTIVE', 'MAINTENANCE', 'OUT_OF_SERVICE'].map(s => <option key={s} value={s}>{s}</option>)}
+            <select required value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--glass-border)', background: 'rgba(255,255,255,0.05)', color: 'grey' }}>
+              {['ACTIVE','OUT_OF_SERVICE'].map(s => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
           <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
