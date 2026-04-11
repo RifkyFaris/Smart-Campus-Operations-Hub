@@ -25,12 +25,13 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class TicketService {
 
-    private final TicketRepository ticketRepository;
-    private final ResourceRepository resourceRepository;
-    private final UserRepository userRepository;
-    private final AttachmentRepository attachmentRepository;
-    private final FileStorageService fileStorageService;
-    private final NotificationService notificationService;
+    private final TicketRepository        ticketRepository;
+    private final ResourceRepository      resourceRepository;
+    private final UserRepository          userRepository;
+    private final AttachmentRepository    attachmentRepository;
+    private final FileStorageService      fileStorageService;
+    private final NotificationService     notificationService;
+    private final EmailService            emailService;
 
     public List<Ticket> getAllTickets() {
         return ticketRepository.findAllWithRelations();
@@ -63,14 +64,20 @@ public class TicketService {
 
         Ticket saved = ticketRepository.save(ticket);
 
-        // Notify all admins about the new ticket
+        // In-app notification → all admins
         notificationService.notifyAllAdmins(
             String.format("🎫 New %s-priority ticket #%d reported by %s on \"%s\": %s",
-                dto.getPriority(), saved.getId(), reporter.getName(),
-                resource.getName(),
+                dto.getPriority(), saved.getId(), reporter.getName(), resource.getName(),
                 dto.getDescription().length() > 60
                     ? dto.getDescription().substring(0, 60) + "…"
                     : dto.getDescription()));
+
+        // Email → reporter confirming submission
+        emailService.sendTicketReceived(
+            reporter.getEmail(), reporter.getName(),
+            saved.getId(), resource.getName(),
+            dto.getCategory().name(), dto.getPriority().name(),
+            dto.getDescription());
 
         return saved;
     }
@@ -81,18 +88,32 @@ public class TicketService {
         ticket.setStatus(newStatus);
         Ticket saved = ticketRepository.save(ticket);
 
-        Long reporterId = saved.getReporter().getId();
-        String resourceName = saved.getResource().getName();
+        Long   reporterId    = saved.getReporter().getId();
+        String reporterEmail = saved.getReporter().getEmail();
+        String reporterName  = saved.getReporter().getName();
+        String resourceName  = saved.getResource().getName();
 
         switch (newStatus) {
-            case IN_PROGRESS -> notificationService.createNotification(reporterId,
-                String.format("🔧 Your ticket #%d for \"%s\" is now being worked on.", ticketId, resourceName));
-            case RESOLVED -> notificationService.createNotification(reporterId,
-                String.format("✅ Your ticket #%d for \"%s\" has been resolved!", ticketId, resourceName));
-            case CLOSED -> notificationService.createNotification(reporterId,
-                String.format("🔒 Your ticket #%d for \"%s\" has been closed.", ticketId, resourceName));
-            case REJECTED -> notificationService.createNotification(reporterId,
-                String.format("❌ Your ticket #%d for \"%s\" has been rejected.", ticketId, resourceName));
+            case IN_PROGRESS -> {
+                notificationService.createNotification(reporterId,
+                    String.format("🔧 Your ticket #%d for \"%s\" is now being worked on.", ticketId, resourceName));
+                emailService.sendTicketInProgress(reporterEmail, reporterName, ticketId, resourceName);
+            }
+            case RESOLVED -> {
+                notificationService.createNotification(reporterId,
+                    String.format("✅ Your ticket #%d for \"%s\" has been resolved!", ticketId, resourceName));
+                emailService.sendTicketResolved(reporterEmail, reporterName, ticketId, resourceName);
+            }
+            case CLOSED -> {
+                notificationService.createNotification(reporterId,
+                    String.format("🔒 Your ticket #%d for \"%s\" has been closed.", ticketId, resourceName));
+                emailService.sendTicketClosed(reporterEmail, reporterName, ticketId, resourceName);
+            }
+            case REJECTED -> {
+                notificationService.createNotification(reporterId,
+                    String.format("❌ Your ticket #%d for \"%s\" has been rejected.", ticketId, resourceName));
+                emailService.sendTicketRejected(reporterEmail, reporterName, ticketId, resourceName);
+            }
             default -> {}
         }
 
@@ -108,10 +129,19 @@ public class TicketService {
         ticket.setStatus(TicketStatus.IN_PROGRESS);
         Ticket saved = ticketRepository.save(ticket);
 
-        // Notify the reporter
-        notificationService.createNotification(saved.getReporter().getId(),
+        Long   reporterId    = saved.getReporter().getId();
+        String reporterEmail = saved.getReporter().getEmail();
+        String reporterName  = saved.getReporter().getName();
+        String resourceName  = saved.getResource().getName();
+
+        // In-app notification
+        notificationService.createNotification(reporterId,
             String.format("🔧 Your ticket #%d has been assigned to %s and is now in progress.",
                 ticketId, assignee.getName()));
+
+        // Email
+        emailService.sendTicketAssigned(reporterEmail, reporterName,
+            ticketId, resourceName, assignee.getName());
 
         return saved;
     }
@@ -119,7 +149,20 @@ public class TicketService {
     @Transactional
     public void deleteTicket(Long ticketId) {
         Ticket ticket = getTicketById(ticketId);
+        Long   reporterId    = ticket.getReporter().getId();
+        String reporterEmail = ticket.getReporter().getEmail();
+        String reporterName  = ticket.getReporter().getName();
+        String resourceName  = ticket.getResource().getName();
+
         ticketRepository.delete(ticket);
+
+        // In-app notification
+        notificationService.createNotification(reporterId,
+            String.format("🗑️ Your ticket #%d for \"%s\" has been removed by an administrator.",
+                ticketId, resourceName));
+
+        // Email
+        emailService.sendTicketDeleted(reporterEmail, reporterName, ticketId, resourceName);
     }
 
     @Transactional
