@@ -14,7 +14,6 @@ import smart.campus.Backend.repository.BookingRepository;
 import smart.campus.Backend.repository.ResourceRepository;
 import smart.campus.Backend.repository.UserRepository;
 
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 
@@ -27,11 +26,9 @@ public class BookingService {
     private final ResourceRepository      resourceRepository;
     private final UserRepository          userRepository;
     private final NotificationService     notificationService;
-    private final EmailService            emailService;
+    
 
-    private static final DateTimeFormatter FMT =
-        DateTimeFormatter.ofPattern("MMM d, yyyy  hh:mm a");
-
+    
     public List<Booking> getAllBookings() {
         return bookingRepository.findAllWithRelations();
     }
@@ -82,13 +79,7 @@ public class BookingService {
                 user.getName(), resource.getName(), saved.getId()));
 
         // Email → user confirming submission
-        emailService.sendBookingReceived(
-            user.getEmail(), user.getName(),
-            resource.getName(), saved.getId(),
-            saved.getStartTime().format(FMT),
-            saved.getEndTime().format(FMT),
-            dto.getPurpose());
-
+       
         return saved;
     }
 
@@ -97,30 +88,18 @@ public class BookingService {
         Booking booking = getBookingById(bookingId);
         booking.setStatus(newStatus);
         Booking saved = bookingRepository.save(booking);
-
-        Long   ownerId      = saved.getUser().getId();
-        String ownerEmail   = saved.getUser().getEmail();
-        String ownerName    = saved.getUser().getName();
+        BookingStatus oldStatus = booking.getStatus();
+        Long ownerId = saved.getUser().getId();
         String resourceName = saved.getResource().getName();
 
         switch (newStatus) {
-            case APPROVED -> {
-                notificationService.createNotification(ownerId,
-                    String.format("✅ Your booking for \"%s\" (Booking #%d) has been approved!", resourceName, bookingId));
-                emailService.sendBookingApproved(ownerEmail, ownerName, resourceName, bookingId,
-                    saved.getStartTime().format(FMT), saved.getEndTime().format(FMT));
-            }
-            case REJECTED -> {
-                notificationService.createNotification(ownerId,
-                    String.format("❌ Your booking for \"%s\" (Booking #%d) has been rejected.", resourceName, bookingId));
-                emailService.sendBookingRejected(ownerEmail, ownerName, resourceName, bookingId);
-            }
-            case CANCELLED -> {
-                notificationService.createNotification(ownerId,
-                    String.format("🚫 Your booking for \"%s\" (Booking #%d) has been cancelled.", resourceName, bookingId));
-                emailService.sendBookingCancelled(ownerEmail, ownerName, resourceName, bookingId);
-            }
-            default -> {}
+             case APPROVED -> notificationService.createNotification(ownerId,
+                String.format("✅ Your booking for \"%s\" (Booking #%d) has been approved!", resourceName, bookingId));
+            case REJECTED -> notificationService.createNotification(ownerId,
+                String.format("❌ Your booking for \"%s\" (Booking #%d) has been rejected.", resourceName, bookingId));
+            case CANCELLED -> notificationService.createNotification(ownerId,
+                String.format("🚫 Your booking for \"%s\" (Booking #%d) has been cancelled.", resourceName, bookingId));
+            default -> {} // No notification for other transitions
         }
 
         return saved;
@@ -128,23 +107,16 @@ public class BookingService {
 
     @Transactional
     public void deleteBooking(Long bookingId) {
-        Booking booking = getBookingById(bookingId);
-        if (booking.getStatus() == BookingStatus.APPROVED) {
-            throw new IllegalStateException("Cannot delete an approved booking. Cancel it first.");
-        }
-        Long   ownerId      = booking.getUser().getId();
-        String ownerEmail   = booking.getUser().getEmail();
-        String ownerName    = booking.getUser().getName();
-        String resourceName = booking.getResource().getName();
+    Booking booking = bookingRepository.findById(bookingId)
+        .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + bookingId));
 
-        bookingRepository.deleteById(bookingId);
+    bookingRepository.deleteById(bookingId);
 
-        // In-app notification
-        notificationService.createNotification(ownerId,
-            String.format("🗑️ Your booking for \"%s\" (Booking #%d) has been deleted by an administrator.",
-                resourceName, bookingId));
-
-        // Email
-        emailService.sendBookingDeleted(ownerEmail, ownerName, resourceName, bookingId);
-    }
+    // Optional: notify user
+    notificationService.createNotification(
+        booking.getUser().getId(),
+        String.format("Your booking for \"%s\" (Booking #%d) has been deleted.",
+            booking.getResource().getName(), bookingId)
+    );
+}
 }
