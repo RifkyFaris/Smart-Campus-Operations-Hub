@@ -34,13 +34,12 @@ public class AuthController {
                 "id", user.getId(),
                 "name", user.getName(),
                 "email", user.getEmail(),
-                "role", user.getRole().name()
-        ));
+                "role", user.getRole().name()));
     }
 
     /**
      * Registers a new USER account. This endpoint is PUBLIC.
-     * Admin accounts are NEVER created via this endpoint — they are seeded via SQL.
+     * Admin accounts are not created via this endpoint.
      */
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody Map<String, String> body) {
@@ -61,7 +60,7 @@ public class AuthController {
                 .email(email)
                 .name(name)
                 .oauthProviderId(oauthProviderId)
-                .role(Role.USER) // ALWAYS USER — never ADMIN here
+                .role(Role.USER)
                 .build();
 
         userRepository.save(newUser);
@@ -70,7 +69,6 @@ public class AuthController {
                 "id", newUser.getId(),
                 "name", newUser.getName(),
                 "email", newUser.getEmail(),
-                "role", newUser.getRole().name()
-        ));
+                "role", newUser.getRole().name()));
     }
 }

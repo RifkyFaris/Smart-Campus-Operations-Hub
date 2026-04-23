@@ -69,11 +69,7 @@ export const AdminRoute = ({ children }) => {
   return children;
 };
 
-/*
- UserRoute — Requires USER role.
- If not authenticated → /login.
- If authenticated but not USER (e.g. ADMIN) → /unauthorized.
- */
+
 export const UserRoute = ({ children }) => {
   const { isAuthenticated, isUser, loading } = useAuth();
 

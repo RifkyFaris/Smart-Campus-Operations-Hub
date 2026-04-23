@@ -31,15 +31,13 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/signup").permitAll()       // Public signup
-                        .requestMatchers(HttpMethod.GET, "/api/resources/**").permitAll() // View resources publicly
-                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll() // Serve uploaded images
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")     // Admin-only endpoints
-                        .anyRequest().authenticated()
-                )
+                        .requestMatchers("/api/auth/signup").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/resources/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
-                        .jwt(jwt -> jwt.jwtAuthenticationConverter(customJwtAuthenticationConverter))
-                );
+                        .jwt(jwt -> jwt.jwtAuthenticationConverter(customJwtAuthenticationConverter)));
 
         return http.build();
     }
