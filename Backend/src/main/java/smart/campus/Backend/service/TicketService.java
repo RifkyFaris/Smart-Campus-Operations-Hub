@@ -40,6 +40,10 @@ public class TicketService {
         return ticketRepository.findByReporterId(reporterId);
     }
 
+    public List<Ticket> getTicketsByAssignee(Long assigneeId) {
+        return ticketRepository.findByAssigneeId(assigneeId);
+    }
+
     public Ticket getTicketById(Long id) {
         return ticketRepository.findByIdWithRelations(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket not found with id: " + id));

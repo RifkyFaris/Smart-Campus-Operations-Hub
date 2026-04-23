@@ -6,6 +6,7 @@ import {
   ProtectedRoute,
   AdminRoute,
   UserRoute,
+  TechnicianRoute,
 } from "./components/RouteGuards";
 
 // Public pages
@@ -24,6 +25,7 @@ import Tickets from "./pages/Tickets";
 
 // Admin-only pages
 import AdminDashboard from "./pages/AdminDashboard";
+import TechnicianDashboard from "./pages/TechnicianDashboard";
 import AboutUs from "./pages/AboutUs";
 import ContactUs from "./pages/ContactUs";
 
@@ -73,7 +75,15 @@ function App() {
             }
           />
 
-          {/* ========== ADMIN-ONLY ROUTES ========== */}
+          <Route
+            path="/technician/dashboard"
+            element={
+              <TechnicianRoute>
+                <TechnicianDashboard />
+              </TechnicianRoute>
+            }
+          />
+
           <Route
             path="/admin/dashboard"
             element={

@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import NotificationPanel from "./NotificationPanel";
 import {
   LogOut, LayoutDashboard, CalendarDays, AlertTriangle,
-  BookOpen, ShieldCheck, Home,
+  BookOpen, ShieldCheck, Home, Wrench
 } from "lucide-react";
 
 const NAV_ICON = {
@@ -11,13 +11,14 @@ const NAV_ICON = {
   "/user/dashboard":  <LayoutDashboard size={16} />,
   "/bookings":        <CalendarDays  size={16} />,
   "/tickets":         <AlertTriangle size={16} />,
+  "/technician/dashboard": <Wrench size={16} />,
   "/admin/dashboard": <ShieldCheck   size={16} />,
 };
 
 const Navbar = () => {
   const location = useLocation();
   const navigate  = useNavigate();
-  const { isAuthenticated, isAdmin, isUser, user, logout } = useAuth();
+  const { isAuthenticated, isAdmin, isTechnician, isUser, user, logout } = useAuth();
 
   const navLinks = [{ to: "/resources", label: "Resources" }];
   if (isUser) {
@@ -26,6 +27,9 @@ const Navbar = () => {
       { to: "/bookings",       label: "Bookings"  },
       { to: "/tickets",        label: "Tickets"   },
     );
+  }
+  if (isTechnician) {
+    navLinks.push({ to: "/technician/dashboard", label: "Task List" });
   }
   if (isAdmin) {
     navLinks.push({ to: "/admin/dashboard", label: "Admin Panel" });
@@ -131,8 +135,8 @@ const Navbar = () => {
                 <span style={{
                   fontSize: "var(--text-xs)", fontWeight: 700,
                   textTransform: "uppercase", letterSpacing: "0.06em",
-                  background: isAdmin ? "rgba(239,68,68,0.18)" : "rgba(197,160,89,0.18)",
-                  color: isAdmin ? "#f87171" : "var(--accent-gold)",
+                  background: isAdmin ? "rgba(239,68,68,0.18)" : isTechnician ? "rgba(99,102,241,0.18)" : "rgba(197,160,89,0.18)",
+                  color: isAdmin ? "#f87171" : isTechnician ? "#818cf8" : "var(--accent-gold)",
                   padding: "3px 9px", borderRadius: 10,
                 }}>
                   {user?.role}

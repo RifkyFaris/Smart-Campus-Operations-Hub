@@ -59,6 +59,7 @@ export const AuthProvider = ({ children }) => {
 
   const isAuthenticated = !!user;
   const isAdmin = user?.role === "ADMIN";
+  const isTechnician = user?.role === "TECHNICIAN";
   const isUser = user?.role === "USER";
 
   return (
@@ -69,6 +70,7 @@ export const AuthProvider = ({ children }) => {
         loading,
         isAuthenticated,
         isAdmin,
+        isTechnician,
         isUser,
         login,
         logout,

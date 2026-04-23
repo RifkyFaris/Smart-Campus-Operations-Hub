@@ -100,3 +100,34 @@ export const UserRoute = ({ children }) => {
 
   return children;
 };
+
+export const TechnicianRoute = ({ children }) => {
+  const { isAuthenticated, isTechnician, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "60vh",
+        }}
+      >
+        <div style={{ color: "var(--text-secondary)", fontSize: "1.1rem" }}>
+          Verifying access…
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!isTechnician) {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  return children;
+};
